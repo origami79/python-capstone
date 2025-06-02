@@ -2,7 +2,7 @@ import elf
 import year
 import storage
 
-year_one = year.Year()
+year_one = year.Year(auto = False)
 
 # for i in range(144):
 for i in range(14):
@@ -12,11 +12,13 @@ for i in range(14):
         new_elf = elf.Elf(-50, None, None, None, 6, "F")
     storage.population[i + 1] = new_elf
     year_one.new_birth(i + 1)
-    storage.history[1] = year_one
     # print(new_elf)
-
-# for index in storage.population:
-#     print(storage.population[index])
+storage.history[1] = year_one
 storage.history[2] = year.Year()
 
-print('spouse', elf.procreate(1,2))
+for index in storage.population:
+    print("Population:", storage.population[index])
+for index in storage.history:
+    print("Year:", index, ", Population:", len(storage.history[index].alive_at_end()))
+
+# print('spouse', elf.procreate(1,2))
