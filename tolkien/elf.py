@@ -40,7 +40,7 @@ class Elf:
         if first_child_age:
             return first_child_age + self.birth_year
         else:
-            return random.randrange(50, 200) + self.birth_year
+            return random.randint(50, 200) + self.birth_year
 
 
     def enough_children (self):
@@ -118,17 +118,6 @@ def pregnant (elf_id: int, year_id: int):
     else:
         return False
 
-
-def procreate (elf_id: int, year_id: int):
-    # gender: str = storage.population[elf_id].gender
-    # spouse: Union [int, None] = storage.population[elf_id].spouse_id
-    # if gender == "M":
-    #     father_id = elf_id
-    #     mother_id = spouse or storage.population[elf_id].pick_spouse(year)
-    # else:
-    #     mother_id = elf_id
-    #     father_id = spouse or storage.population[elf_id].pick_spouse(year)
-    pass
 
     
 

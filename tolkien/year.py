@@ -9,6 +9,7 @@ if TYPE_CHECKING:
     from elf import Elf
 
 import itertools
+import random
 import storage
 
 class Year:
@@ -32,7 +33,9 @@ class Year:
 
         if auto:
             # attempt to matchmake adult, unmarried elves
+            matchmake(self.id)
             # attempt to concieve children
+            procreate(self.id)
             # birth any children read to pop
             # kill random percentage of population
             pass
@@ -83,26 +86,60 @@ def ready_for_a_child (year_id: int):
                     filtered.append([id, spouse.id])
     return filtered
 
-def matchmake (year_id: int, marry_chance: int = 50):
+def matchmake (year_id: int, marry_chance: int = 50, prefer_match_chance: int = 20, nonprefer_match_chance: int = 10):
     unmarried: list[int] = adult_unmarried(year_id)
-    male: list[int] = []
-    female: list[int] = []
+    males: list[int] = []
+    females: list[int] = []
     for id in unmarried:
         elf: Elf = storage.population[id]
         if elf.gender == "M":
-            male.append(id)
+            males.append(id)
         else:
-            female.append(id)
+            females.append(id)
     # for each in one list
+    for female_id in females:
         # check agianst marry chance
+        woman: Elf = storage.population[female_id]
+        if random.randint(1, 100) <= marry_chance:
             # remove relatives from list
+            near_relatives: list[int] = woman.find_near_relatives()
+            valid_partners: list[int] = list(set(males) - set(near_relatives))
             # sort list into preferred (first child year within 10 years) and nonpreferred (all others)
+            preferred: list[int] = []
+            nonpreferred: list[int] = []
+            for male_id in valid_partners:
+                man: Elf = storage.population[male_id]
+                if abs(woman.first_child_year - man.first_child_year) <= 10:
+                    preferred.append(male_id)
+                else:
+                    nonpreferred.append(male_id)
             # for each in preferred list
+            for male_id in preferred:
+                man: Elf = storage.population[male_id]
                 # check against another chance (20% maybe?) to find success
+                if random.randint(1, 100) <= prefer_match_chance:
                     # if succeed, create marriage and return
+                    create_marriage(male_id, female_id)
+                    return
                     # if fail skip to next candidate
             # if no success found in preferred list, check in nonpreferred list
+            for male_id in nonpreferred:
+                man: Elf = storage.population[male_id]
                 # check against another chance (10% maybe?) to find success
-                    # if success, create marriage and return
+                if random.randint(1, 100) <= nonprefer_match_chance:
+                    # if succeed, create marriage and return
+                    create_marriage(male_id, female_id)
+                    return
                     # if fail, no marriage this year and return
         # return with no marriage
+        return
+
+def create_marriage (male_id: int, female_id: int):
+    man: Elf = storage.population[male_id]
+    woman: Elf = storage.population[female_id]
+    man.spouse_id = female_id
+    woman.spouse_id = male_id
+
+def procreate (year_id: int):
+
+    pass
