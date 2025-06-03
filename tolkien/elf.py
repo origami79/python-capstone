@@ -17,8 +17,11 @@ import year
 class Elf:
     id_iter = itertools.count(1)
 
-    def __init__ (self, birth_year: int, mother_id: Union [int, None], father_id: Union [int, None], spouse_id: Union [int, None] = None, target_children: Union [int, None] = None, gender: Union [str, None] = None, first_child_age: Union [int, None] = None):
-        self.id: int = next(Elf.id_iter)
+    def __init__ (self, birth_year: int, mother_id: Union [int, None], father_id: Union [int, None], spouse_id: Union [int, None] = None, target_children: Union [int, None] = None, gender: Union [str, None] = None, first_child_age: Union [int, None] = None, id: Union [str, int, None] = None):
+        if not id:
+            self.id: int = next(Elf.id_iter)
+        else:
+            self.id: int = int(id)
         self.birth_year: int = birth_year
         self.mother_id: Union [int, None] = mother_id
         self.father_id: Union [int, None] = father_id
