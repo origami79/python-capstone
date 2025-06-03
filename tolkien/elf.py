@@ -34,7 +34,7 @@ class Elf:
         self.gender: str = gender or choose_gender()
 
     def __str__ (self) -> str:
-        return f"Elf {self.id} is {self.gender}"
+        return f"Elf {self.id} is {self.gender}, is married to Elf {self.spouse_id} and wants {self.target_children} children, starting in {self.first_child_year}"
     
     def first_child (self, first_child_age: Union [int, None]):
         if first_child_age:
