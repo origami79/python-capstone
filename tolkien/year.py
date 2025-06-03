@@ -38,8 +38,8 @@ class Year:
             procreate(self.id)
             # birth any children read to pop
             birth_babies(self.id)
-            # kill random percentage of population
-            pass
+            # kill random small percentage of population
+            kill_random(self.id)
 
     def new_birth(self, elf: int):
         self.born_this_year.append(elf)
@@ -175,3 +175,36 @@ def birth_babies (year_id: int):
         mother.children.append(child.id)
         storage.history[year_id].born_this_year.append(child.id)
     
+def kill_random (year_id: int, adult_death_chance: int = 2, child_death_chance: int = 1):
+    # get all alive
+    year = storage.history[year_id]
+    alive: list[int] = year.alive_at_start
+    adults: list[int] = []
+    children: list[int] = []
+    current_year: int = year_id
+    # sort into adult and child
+    for elf_id in alive:
+        elf: Elf = storage.population[elf_id]
+        current_age: int = current_year - elf.birth_year
+        if current_age >= 50:
+            adults.append(elf_id)
+        else:
+            children.append(elf_id)
+    # for each adult check against adult death chance
+    for adult_id in adults:
+        # if success
+        if random.randint(1, 500) <= adult_death_chance:
+            adult: Elf = storage.population[adult_id]
+            # add to died this year
+            year.died_this_year.append(adult_id)
+            # update elf with death
+            adult.death_year = year_id
+    # for each child check against child death chance
+    for child_id in children:
+        # if success
+        if random.randint(1, 500) <= child_death_chance:
+            child: Elf = storage.population[child_id]
+            # add to died this year
+            year.died_this_year.append(child_id)
+            # update elf with death
+            child.death_year = year_id
