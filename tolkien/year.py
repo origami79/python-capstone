@@ -86,6 +86,7 @@ def ready_for_a_child (year_id: int):
                     filtered.append([id, spouse.id])
     return filtered
 
+
 def matchmake (year_id: int, marry_chance: int = 50, prefer_match_chance: int = 20, nonprefer_match_chance: int = 10):
     unmarried: list[int] = adult_unmarried(year_id)
     males: list[int] = []
@@ -140,6 +141,15 @@ def create_marriage (male_id: int, female_id: int):
     man.spouse_id = female_id
     woman.spouse_id = male_id
 
-def procreate (year_id: int):
-
-    pass
+def procreate (year_id: int, child_chance: int = 40):
+    # find all couples ready for children
+    couples: list[list[int]] = ready_for_a_child(year_id)
+    # for each couple
+    for couple in couples:
+        # roll against child chance
+        if random.randint(1, 100) <= child_chance:
+            parent1: Elf = storage.population[couple[0]]
+            parent2: Elf = storage.population[couple[1]]
+            # create a pregnancy
+            parent1.last_child_concieved = year_id
+            parent2.last_child_concieved = year_id
