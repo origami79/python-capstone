@@ -37,6 +37,7 @@ class Year:
             # attempt to concieve children
             procreate(self.id)
             # birth any children read to pop
+            birth_babies(self.id)
             # kill random percentage of population
             pass
 
@@ -153,3 +154,24 @@ def procreate (year_id: int, child_chance: int = 40):
             # create a pregnancy
             parent1.last_child_concieved = year_id
             parent2.last_child_concieved = year_id
+
+def birth_babies (year_id: int):
+    # get all pregnant couples 10 years since last conception
+    adults: list[int] = all_adults(year_id)
+    due_couples: list[list[int]] = []
+    for id in adults:
+        elf: Elf = storage.population[id]
+        if elf.spouse_id and elf.gender == "M" and elf.last_child_concieved and (year_id - elf.last_child_concieved == 10):
+            due_couples.append([elf.id, elf.spouse_id])
+        elif elf.spouse_id  and elf.last_child_concieved and (year_id - elf.last_child_concieved == 10):
+            due_couples.append([elf.spouse_id, elf.id])
+    # for each couple
+    for couple in due_couples:
+        # create a child for them
+        father = storage.population[couple[0]]
+        mother = storage.population[couple[1]]
+        child = Elf(year_id, mother.id, father.id)
+        father.children.append(child.id)
+        mother.children.append(child.id)
+        storage.history[year_id].born_this_year.append(child.id)
+    
