@@ -8,13 +8,13 @@ year_one = year.Year()
 for i in range(144):
 # for i in range(14):
     if i % 2 == 0:
-        new_elf = elf.Elf(-50, None, None, None, 6, "M")
+        new_elf = elf.Elf(-50, None, None, 1, None, 6, "M")
         new_elf.spouse_id = new_elf.id + 1
     else:
-        new_elf = elf.Elf(-50, None, None, None, 6, "F")
+        new_elf = elf.Elf(-50, None, None, 1, None, 6, "F")
         new_elf.spouse_id = new_elf.id - 1
     storage.population[i + 1] = new_elf
-    year_one.new_birth(i + 1)
+    year_one.born_this_year.append(i + 1)
     # print(new_elf)
 storage.history[1] = year_one
 
@@ -29,9 +29,11 @@ currently_dead = []
 currently_adult = []
 currently_child = []
 current_year = len(storage.history.keys())
+highest_gen = 0
 
 for i in storage.population:
     this_elf = storage.population[i]
+    highest_gen = max([this_elf.generation, highest_gen])
     if this_elf.death_year:
         currently_dead.append(this_elf.id)
     else:
@@ -43,5 +45,6 @@ for i in storage.population:
             currently_adult.append(this_elf.id)
 
 print(f"There are currently {len(currently_alive)} elves alive, {len(currently_child)} of whom are children, and {len(currently_dead)} elves who have died.")
+print(f"There have been {highest_gen} generations born.")
 # print(f"Currently dead elves are: {currently_dead}")
 save_new("cuivienen")

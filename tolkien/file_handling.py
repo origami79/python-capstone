@@ -20,7 +20,7 @@ def open_file (file_name: str):
     for index in population:
         entry = population[index]
         id = int(entry['id'])
-        elf: Elf = Elf(entry["birth_year"], entry["mother_id"], entry["father_id"])
+        elf: Elf = Elf(entry["birth_year"], entry["mother_id"], entry["father_id"], entry["generation"])
         elf.id = id
         elf.spouse_id = entry["spouse_id"]
         elf.death_year = entry["death_year"]

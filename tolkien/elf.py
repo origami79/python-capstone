@@ -17,14 +17,13 @@ import year
 class Elf:
     id_iter = itertools.count(1)
 
-    def __init__ (self, birth_year: int, mother_id: Union [int, None], father_id: Union [int, None], spouse_id: Union [int, None] = None, target_children: Union [int, None] = None, gender: Union [str, None] = None, first_child_age: Union [int, None] = None, id: Union [str, int, None] = None):
-        if not id:
-            self.id: int = next(Elf.id_iter)
-        else:
-            self.id: int = int(id)
+    def __init__ (self, birth_year: int, mother_id: Union [int, None], father_id: Union [int, None], generation: int, spouse_id: Union [int, None] = None, target_children: Union [int, None] = None, gender: Union [str, None] = None, first_child_age: Union [int, None] = None):
+
+        self.id: int = next(Elf.id_iter)
         self.birth_year: int = birth_year
         self.mother_id: Union [int, None] = mother_id
         self.father_id: Union [int, None] = father_id
+        self.generation: int = generation
         self.spouse_id: Union [int, None] = spouse_id
         self.death_year: Union [int, None] = None
         self.children: list[int] = []
@@ -43,8 +42,14 @@ class Elf:
         if first_child_age:
             return first_child_age + self.birth_year
         else:
-            return random.randint(50, 200) + self.birth_year
-
+            if self.generation in [1, 2, 3]:
+                return random.randint(50, 60) + self.birth_year
+            elif self.generation in [4, 5, 6]:
+                return random.randint(50, 75) + self.birth_year
+            elif random.randint(1, 100) % 2 == 0:
+                return random.randint(50, 150) + self.birth_year
+            else:
+                return random.randint(75, 200) + self.birth_year
 
     def enough_children (self):
         if len(self.children) >= self.target_children:
@@ -52,6 +57,20 @@ class Elf:
         else:
             return False
     
+    def target_children_amount(self):
+        average_six = [4, 4, 5, 5, 5, 6, 6, 6, 6, 6, 6, 6, 6, 6, 6, 6, 6, 6, 6, 6, 6, 6, 6, 6, 6, 6, 6, 6, 6, 6]
+        average_five = [2, 2, 2, 3, 3, 3, 4, 4, 4, 4, 4, 4, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 6, 6, 6, 6]
+        average_four = [0, 1, 1, 2, 2, 2, 3, 3, 3, 3, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 5, 5, 5, 5, 6, 6]
+        average_three = [0, 0, 1, 1, 1, 1, 1, 2, 2, 2, 2, 2, 2, 3, 3, 3, 3, 3, 3, 3, 3, 4, 4, 4, 4, 5, 5, 5, 6, 6]
+        if self.generation in [1, 2, 3]:
+            return random.choice(average_six)
+        elif self.generation in [4, 5, 6]:
+            return random.choice(average_five)
+        elif random.randint(1, 100) % 2 == 0:
+            return random.choice(average_four)
+        else:
+            return random.choice(average_three)
+
     def find_near_relatives (self):
     # first degree - self, parents, children, siblings
         parents: list[int] = []
@@ -90,19 +109,6 @@ class Elf:
         second_degree_relatives: list[int] = list(set(grandparents + grandchildren + piblings + niblings))
 
         return list(set(first_degree_relatives + second_degree_relatives))
-    
-    def pick_spouse (self, year_id: int):
-        target_gender: str = "M" if self.gender == "F" else "F"
-        unmarried: list[int] = year.adult_unmarried(year_id)
-        near_relatives: list[int] = self.find_near_relatives()
-        unrelated: list[int] = list(set(unmarried) - set(near_relatives))
-        filtered: list[int] = []
-        for id in unrelated:
-            elf: Elf = storage.population[id]
-            if elf.gender == target_gender and not elf.enough_children:
-                filtered.append(id)
-
-        print('filtered', filtered)
 
     def married (self):
         if self.spouse_id:
