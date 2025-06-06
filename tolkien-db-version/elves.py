@@ -1,18 +1,20 @@
 import random
 from typing import Union
+from collections import namedtuple
 
-elf_format = {
-    "mother_id": "", # NONE OR INT
-    "father_id": "", # NONE OR INT
-    "birth_year": "", # INT
-    "death_year": "", # INT
-    "generation": "", # INT
-    "gender": "", # STR
-    "spouse_id": "", # NONE OR INT
-    "target_children": "", # INT
-    "first_child_year": "", # NONE or INT
-    "last_child_concieved": "" # NONE or INT
-}
+Elf = namedtuple( "Elf", [
+    "id",
+    "mother_id",
+    "father_id",
+    "birth_year",
+    "death_year",
+    "generation",
+    "gender",
+    "spouse_id",
+    "target_children",
+    "first_child_year",
+    "last_child_conceived"]
+)
 
 def new_elf(birth_year: int, generation: int, mother_id: Union[int, None] = None, father_id: Union[int, None] = None, spouse_id: Union[int, None] = None, gender: Union[str, None] = None):
     elf = {
@@ -21,15 +23,22 @@ def new_elf(birth_year: int, generation: int, mother_id: Union[int, None] = None
         "birth_year": birth_year,
         "death_year": None,
         "generation": generation,
-        "gender": gender,
+        "gender": gender or random_gender(),
         "spouse_id": spouse_id,
         "target_children": None,
         "first_child_year": None,
-        "last_child_concieved": None,
+        "last_child_conceived": None,
     } 
     elf["target_children"] = calculate_target_children(elf["generation"])
     elf["first_child_year"] = calculate_first_child_year(elf["generation"], elf["target_children"], elf["birth_year"],)
     return elf
+
+def format_elf(elf_data: tuple):
+    elf = Elf(*elf_data)
+    return elf
+
+def random_gender():
+    return random.choice(["F", "M"])
 
 def calculate_target_children(generation):
     average_six = [4, 4, 5, 5, 5, 6, 6, 6, 6, 6, 6, 6, 6, 6, 6, 6, 6, 6, 6, 6, 6, 6, 6, 6, 6, 6, 6, 6, 6, 6]
