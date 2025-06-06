@@ -23,10 +23,12 @@ cursor.execute('''
         target_children INTEGER NOT NULL,
         first_child_year INTEGER,
         last_child_conceived INTEGER,
+        father_of_baby INTEGER,
                
         FOREIGN KEY (mother_id) REFERENCES Elves(id),
         FOREIGN KEY (father_id) REFERENCES Elves(id),
-        FOREIGN KEY (spouse_id) REFERENCES Elves(id)
+        FOREIGN KEY (spouse_id) REFERENCES Elves(id),
+        FOREIGN KEY (father_of_baby) REFERENCES Elves(id)
     )
 ''')
 conn.commit()
@@ -45,14 +47,10 @@ for i in range(144):
 def simulate_year(year):
     # matchmake unmarried
     cursor.execute('''
-        SELECT * FROM Elves WHERE gender= "F" AND birth_year <= ? AND (death_year IS NULL OR death_year >= ?) AND spouse_id IS NULL
+        SELECT * FROM Elves WHERE gender= "F" AND birth_year <= ? AND (death_year IS NULL OR death_year >= ?) AND spouse_id IS NULL AND first_child_year IS NOT NULL
     ''', (year - 50, year))
     unmarried_females = cursor.fetchall()
-    cursor.execute('''
-        SELECT * FROM Elves WHERE gender= "M" AND birth_year <= ? AND (death_year IS NULL OR death_year >= ?) AND spouse_id IS NULL
-    ''', (year - 50, year))
-    unmarried_males = cursor.fetchall()
-    matchmake(unmarried_females, unmarried_males, year)
+    matchmake(unmarried_females, year)
     # start new pregnancies
     cursor.execute('''
         SELECT * FROM Elves WHERE gender= "F" AND birth_year <= ? AND spouse_id IS NOT NULL AND (death_year IS NULL OR death_year >= ?) AND ((first_child_year >= ? AND last_child_conceived IS NULL) OR (last_child_conceived <= ?))
@@ -84,7 +82,7 @@ def simulate_year(year):
     children = cursor.fetchall()
     kill_population(adult_targets, children, year)
 
-for i in range(100):
+for i in range(600):
     simulate_year(i) 
 
 # cursor.execute('SELECT * FROM Elves')

@@ -13,7 +13,9 @@ Elf = namedtuple( "Elf", [
     "spouse_id",
     "target_children",
     "first_child_year",
-    "last_child_conceived"]
+    "last_child_conceived",
+    "father_of_baby"
+    ]
 )
 
 def new_elf(birth_year: int, generation: int, mother_id: Union[int, None] = None, father_id: Union[int, None] = None, spouse_id: Union[int, None] = None, gender: Union[str, None] = None):
@@ -28,6 +30,7 @@ def new_elf(birth_year: int, generation: int, mother_id: Union[int, None] = None
         "target_children": None,
         "first_child_year": None,
         "last_child_conceived": None,
+        "father_of_baby": None
     } 
     elf["target_children"] = calculate_target_children(elf["generation"])
     elf["first_child_year"] = calculate_first_child_year(elf["generation"], elf["target_children"], elf["birth_year"],)
