@@ -8,6 +8,9 @@ cursor = conn.cursor()
 cursor.execute('''
     DROP TABLE Elves
 ''')
+cursor.execute('''
+    DROP TABLE Relationships
+''')
 conn.commit()
 
 cursor.execute('''
@@ -23,25 +26,35 @@ cursor.execute('''
         target_children INTEGER NOT NULL,
         first_child_year INTEGER,
         last_child_conceived INTEGER,
-        father_of_baby INTEGER,
-               
-        FOREIGN KEY (mother_id) REFERENCES Elves(id),
-        FOREIGN KEY (father_id) REFERENCES Elves(id),
-        FOREIGN KEY (spouse_id) REFERENCES Elves(id),
-        FOREIGN KEY (father_of_baby) REFERENCES Elves(id)
+        father_of_baby INTEGER               
+    )
+''')
+cursor.execute('''
+    CREATE TABLE IF NOT EXISTS Relationships (
+        id INTEGER PRIMARY KEY,
+        base_id INT NOT NULL,
+        relation_id INT NOT NULL,
+        relationship STR NOT NULL,
+        FOREIGN KEY (base_id) REFERENCES Elves(id),
+        FOREIGN KEY (relation_id) REFERENCES Elves(id)              
     )
 ''')
 conn.commit()
 
 for i in range(144):
     if i % 2 == 0:
-        elf = new_elf(birth_year = -50, generation= 1, gender= "M", spouse_id= i+2) # 
+        elf = new_elf(birth_year = -50, generation= 1, gender= "M", spouse_id= i+2)
+        relation = {"base_id": i+1, "relation_id": i+2, "relationship": "spouse"}
     else:
-        elf = new_elf(birth_year = -50, generation= 1, gender= "F", spouse_id= i) # 
+        elf = new_elf(birth_year = -50, generation= 1, gender= "F", spouse_id= i)
+        relation = {"base_id": i+1, "relation_id": i, "relationship": "spouse"}
     cursor.execute('''
         INSERT INTO Elves (birth_year, generation, target_children, gender, spouse_id, target_children, first_child_year) 
         VALUES (:birth_year, :generation, :target_children, :gender, :spouse_id, :target_children, :first_child_year)
     ''', elf)
+    cursor.execute('''
+        INSERT INTO Relationships (base_id, relation_id, relationship) VALUES (:base_id, :relation_id, :relationship)
+    ''', relation)
     conn.commit()
 
 def simulate_year(year):
@@ -64,26 +77,21 @@ def simulate_year(year):
     women_ready_for_birth = cursor.fetchall()
     resolve_pregnancies(women_ready_for_birth, year)
     # kill random population
-    # search for adult men
+    # search for adult men and adult women who are not pregnant
     cursor.execute('''
-        SELECT * FROM Elves WHERE gender= "M" AND birth_year <= :year AND death_year IS NULL
-    ''', {"year": year - 50})
-    adult_men = cursor.fetchall()
-    # search for adult women who are not pregnant
-    cursor.execute('''
-        SELECT * FROM Elves WHERE gender= "F" AND birth_year <= ? AND death_year IS NULL AND ((first_child_year >= ? AND last_child_conceived IS NULL) OR (last_child_conceived >= ?))
-    ''', (year - 50, year, year + 20))
-    non_pregnant_women = cursor.fetchall()
-    adult_targets = adult_men + non_pregnant_women
+        SELECT * FROM Elves WHERE (gender= "M" AND birth_year <= :birth_year AND death_year IS NULL) OR 
+            (gender= "F" AND birth_year <= :birth_year AND death_year IS NULL AND ((first_child_year >= year AND last_child_conceived IS NULL) OR (last_child_conceived >= :last_conception)))
+    ''', {"birth_year": year - 50, "year": year, "last_conception": year - 20})
+    adults = cursor.fetchall()  
     # search for children
     cursor.execute('''
         SELECT * FROM Elves WHERE birth_year BETWEEN ? AND ? AND death_year IS NULL
     ''', (year - 50, year - 5))
     children = cursor.fetchall()
-    kill_population(adult_targets, children, year)
+    kill_population(adults, children, year)
 
-for i in range(600):
-    simulate_year(i) 
+# for i in range(600):
+#     simulate_year(i) 
 
 # cursor.execute('SELECT * FROM Elves')
 # elves = cursor.fetchall()
