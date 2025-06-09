@@ -2,7 +2,7 @@ import random
 from elves import format_elf
 import sqlite3
 
-conn = sqlite3.connect("tolkien_elves.db")
+conn = sqlite3.connect("tolkien_elves_600_revised.db")
 cursor = conn.cursor()
 
 def matchmake (unmarried_women, year, marriage_chance = 40):
@@ -13,7 +13,7 @@ def matchmake (unmarried_women, year, marriage_chance = 40):
             query = "SELECT relation_id FROM Relationships WHERE base_id= :base_id"
             cursor.execute(query, {"base_id": wife.id})
             relatives = list(map(lambda tuple: tuple[0], cursor.fetchall()))
-            query = "SELECT * FROM Elves WHERE gender= 'M' AND birth_year <= ? AND (death_year IS NULL OR death_year >= ?) AND spouse_id IS NULL AND id NOT IN ({}) AND first_child_year IS NOT NULL".format(','.join('?' * len(relatives)))
+            query = "SELECT * FROM Elves WHERE gender= 'M' AND birth_year <= ? AND current_children < target_children AND (death_year IS NULL OR death_year >= ?) AND spouse_id IS NULL AND id NOT IN ({}) AND first_child_year IS NOT NULL".format(','.join('?' * len(relatives)))
             cursor.execute(query, [year - 50, year, *relatives])
             unmarried_males = cursor.fetchall()
             best_match = []

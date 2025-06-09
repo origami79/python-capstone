@@ -12,6 +12,7 @@ Elf = namedtuple( "Elf", [
     "gender",
     "spouse_id",
     "target_children",
+    "current_children",
     "first_child_year",
     "last_child_conceived",
     "father_of_baby"
@@ -28,6 +29,7 @@ def new_elf(birth_year: int, generation: int, mother_id: Union[int, None] = None
         "gender": gender or random_gender(),
         "spouse_id": spouse_id,
         "target_children": None,
+        "current_children": 0,
         "first_child_year": None,
         "last_child_conceived": None,
         "father_of_baby": None

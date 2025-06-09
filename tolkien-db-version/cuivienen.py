@@ -29,6 +29,7 @@ cursor.execute('''
         gender STR,
         spouse_id INTEGER,
         target_children INTEGER NOT NULL,
+        current_children INTEGER NOT NULL,
         first_child_year INTEGER,
         last_child_conceived INTEGER,
         father_of_baby INTEGER               
@@ -57,8 +58,8 @@ for i in range(144):
         elf = new_elf(birth_year = -50, generation= 1, gender= "F", spouse_id= i)
         relation = {"base_id": i+1, "relation_id": i, "relationship": "spouse"}
     cursor.execute('''
-        INSERT INTO Elves (birth_year, generation, target_children, gender, spouse_id, target_children, first_child_year) 
-        VALUES (:birth_year, :generation, :target_children, :gender, :spouse_id, :target_children, :first_child_year)
+        INSERT INTO Elves (id, mother_id, father_id, birth_year, death_year, generation, gender, spouse_id, target_children, current_children, first_child_year, last_child_conceived, father_of_baby) 
+        VALUES (NULL, :mother_id, :father_id, :birth_year, :death_year, :generation, :gender, :spouse_id, :target_children, :current_children, :first_child_year, :last_child_conceived, :father_of_baby)
     ''', elf)
     cursor.execute('''
         INSERT INTO Relationships (base_id, relation_id, relationship) VALUES (:base_id, :relation_id, :relationship)
@@ -74,8 +75,8 @@ def simulate_year(year):
     matchmake(unmarried_females, year)
     # start new pregnancies
     cursor.execute('''
-        SELECT * FROM Elves WHERE gender= "F" AND birth_year <= ? AND spouse_id IS NOT NULL AND (death_year IS NULL OR death_year >= ?) AND ((first_child_year >= ? AND last_child_conceived IS NULL) OR (last_child_conceived <= ?))
-    ''', (year - 50, year, year, year - 20))
+        SELECT * FROM Elves WHERE gender= "F" AND current_children < target_children AND birth_year <= :birth_year_for_adult AND spouse_id IS NOT NULL AND death_year IS NULL AND ((first_child_year <= :current_year AND last_child_conceived IS NULL) OR (last_child_conceived >= :year_ready_for_new_child))
+    ''', {"birth_year_for_adult": year - 50, "current_year": year, "year_ready_for_new_child": year - 20})
     women_ready_for_a_child = cursor.fetchall()
     start_pregnancies(women_ready_for_a_child, year)
     # finish existing pregnancies

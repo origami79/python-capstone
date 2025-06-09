@@ -1,11 +1,12 @@
 from elves import format_elf, new_elf
 import sqlite3
 
-conn = sqlite3.connect("tolkien_elves.db")
+conn = sqlite3.connect("tolkien_elves_600_revised.db")
 cursor = conn.cursor()
 
 def resolve_pregnancies (pregnant_women, year):
     babies = []
+    parents = []
     for woman in pregnant_women:
         mother = format_elf(woman)
         father_id = mother.father_of_baby
@@ -14,10 +15,13 @@ def resolve_pregnancies (pregnant_women, year):
         generation = max([father.generation, mother.generation]) + 1
         child = new_elf(year, generation, mother.id, father.id)
         babies.append(child)
+        parents += [{"current_children": mother.current_children + 1, "id": mother.id}, {"current_children": father.current_children + 1, "id": father.id}]
     cursor.executemany('''
-        INSERT INTO Elves (mother_id, father_id, birth_year, generation, target_children, gender, spouse_id, target_children, first_child_year) 
-        VALUES (:mother_id, :father_id, :birth_year, :generation, :target_children, :gender, :spouse_id, :target_children, :first_child_year)
+        INSERT INTO Elves (id, mother_id, father_id, birth_year, death_year, generation, gender, spouse_id, target_children, current_children, first_child_year, last_child_conceived, father_of_baby) 
+        VALUES (NULL, :mother_id, :father_id, :birth_year, :death_year, :generation, :gender, :spouse_id, :target_children, :current_children, :first_child_year, :last_child_conceived, :father_of_baby)
     ''', babies)
+    conn.commit()
+    cursor.executemany("UPDATE Elves SET current_children = :current_children WHERE id = :id", parents)
     conn.commit()
     update_all_relationships(year)
 
