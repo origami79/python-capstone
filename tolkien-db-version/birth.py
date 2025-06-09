@@ -38,6 +38,23 @@ lookup = {
     "spouse": None
 }
 
+reverse_lookup = {
+    "parent": "grandchild",
+    "grandparent": "great_grandchild",
+    "great_grandparent": None,
+    "full_sibling": "full_nibling",
+    "half_sibling": "half_nibling",
+    "full_pibling": "full_great_nibling",
+    "full_great_pibling": None,
+    "half_pibling": None,
+    "full_nibling": "full_first_cousin",
+    "half_nibling": None,
+    "full_first_cousin": None,
+    "child": "sibling-sort",
+    "grandchild": "nibling-sort",
+    "spouse": None
+}
+
 def format_elves(data):
     formated = []
     for line in data:
@@ -69,7 +86,7 @@ def update_relationships (elfling):
         else:
             if new_relation is not None:
                 relative_updates.append({"base_id": elfling["id"], "relation_id": relative[0], "relationship": new_relation})
-                relative_updates.append({"base_id": relative[0], "relation_id": elfling["id"], "relationship": new_relation})
+                relative_updates.append({"base_id": relative[0], "relation_id": elfling["id"], "relationship": reverse_lookup[relative[1]]})
     
     while len(siblings) > 0:
         current = siblings.pop()
@@ -86,8 +103,8 @@ def update_relationships (elfling):
         grandparents = cursor.fetchall()
         if elfling["mother_id"] in grandparents and elfling["father_id"] in grandparents:
             relative_updates.append({"base_id": elfling["id"], "relation_id": nibling, "relationship": "full_nibling"})
-            relative_updates.append({"base_id": nibling, "relation_id": elfling["id"], "relationship": "full_nibling"})
+            relative_updates.append({"base_id": nibling, "relation_id": elfling["id"], "relationship": "full_pibling"})
         else:
             relative_updates.append({"base_id": elfling["id"], "relation_id": nibling, "relationship": "half_nibling"})
-            relative_updates.append({"base_id": nibling, "relation_id": elfling["id"], "relationship": "half_nibling"})
+            relative_updates.append({"base_id": nibling, "relation_id": elfling["id"], "relationship": "half_pibling"})
     return relative_updates
