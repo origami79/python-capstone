@@ -12,7 +12,7 @@ def matchmake (unmarried_women, year, marriage_chance = 40):
         if random.randint(1, 100) <= marriage_chance:
             query = "SELECT relation_id FROM Relationships WHERE base_id= :base_id"
             cursor.execute(query, {"base_id": wife.id})
-            relatives = cursor.fetchall()
+            relatives = list(map(lambda tuple: tuple[0], cursor.fetchall()))
             query = "SELECT * FROM Elves WHERE gender= 'M' AND birth_year <= ? AND (death_year IS NULL OR death_year >= ?) AND spouse_id IS NULL AND id NOT IN ({}) AND first_child_year IS NOT NULL".format(','.join('?' * len(relatives)))
             cursor.execute(query, [year - 50, year, *relatives])
             unmarried_males = cursor.fetchall()

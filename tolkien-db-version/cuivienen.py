@@ -1,15 +1,20 @@
 import sqlite3
 from elves import new_elf
-from years import matchmake, start_pregnancies, resolve_pregnancies, kill_population
+from years import start_pregnancies, kill_population
+from matchmaking import matchmake
+from birth import resolve_pregnancies
 
-conn = sqlite3.connect("tolkien_elves.db")
+import time
+total_start = time.time()
+
+conn = sqlite3.connect("tolkien_elves_600_revised.db")
 cursor = conn.cursor()
 
 cursor.execute('''
-    DROP TABLE Elves
+    DROP TABLE IF EXISTS Elves
 ''')
 cursor.execute('''
-    DROP TABLE Relationships
+    DROP TABLE IF EXISTS Relationships
 ''')
 conn.commit()
 
@@ -39,6 +44,9 @@ cursor.execute('''
         FOREIGN KEY (relation_id) REFERENCES Elves(id)              
     )
 ''')
+cursor.execute('''
+    CREATE INDEX index_relationship_base_id ON Relationships(base_id);
+''')
 conn.commit()
 
 for i in range(144):
@@ -60,7 +68,7 @@ for i in range(144):
 def simulate_year(year):
     # matchmake unmarried
     cursor.execute('''
-        SELECT * FROM Elves WHERE gender= "F" AND birth_year <= ? AND (death_year IS NULL OR death_year >= ?) AND spouse_id IS NULL AND first_child_year IS NOT NULL
+        SELECT * FROM Elves WHERE gender= "F" AND birth_year <= ? AND (death_year IS NULL OR death_year >= ?) AND spouse_id IS NULL AND first_child_year IS NOT NULL AND generation <= 10
     ''', (year - 50, year))
     unmarried_females = cursor.fetchall()
     matchmake(unmarried_females, year)
@@ -80,7 +88,7 @@ def simulate_year(year):
     # search for adult men and adult women who are not pregnant
     cursor.execute('''
         SELECT * FROM Elves WHERE (gender= "M" AND birth_year <= :birth_year AND death_year IS NULL) OR 
-            (gender= "F" AND birth_year <= :birth_year AND death_year IS NULL AND ((first_child_year >= year AND last_child_conceived IS NULL) OR (last_child_conceived >= :last_conception)))
+            (gender= "F" AND birth_year <= :birth_year AND death_year IS NULL AND ((first_child_year >= :year AND last_child_conceived IS NULL) OR (last_child_conceived >= :last_conception)))
     ''', {"birth_year": year - 50, "year": year, "last_conception": year - 20})
     adults = cursor.fetchall()  
     # search for children
@@ -90,8 +98,8 @@ def simulate_year(year):
     children = cursor.fetchall()
     kill_population(adults, children, year)
 
-# for i in range(600):
-#     simulate_year(i) 
+for i in range(600):
+    simulate_year(i)
 
 # cursor.execute('SELECT * FROM Elves')
 # elves = cursor.fetchall()
@@ -100,6 +108,9 @@ def simulate_year(year):
 #     print(elf)
 
 conn.close()
+total_end = time.time()
+
 
 print("All done <3")
+print("Total Time Taken :", int((total_end-total_start)/60), "minutes and", int((total_end-total_start) % 60), "seconds")
 
