@@ -39,6 +39,7 @@ lookup = {
     "full_first_cousin": None,
     "child": "sibling-sort",
     "grandchild": "nibling-sort",
+    "great_grandchild": "great-nibling-sort",
     "spouse": None
 }
 
@@ -56,6 +57,7 @@ reverse_lookup = {
     "full_first_cousin": None,
     "child": "sibling-sort",
     "grandchild": "nibling-sort",
+    "great_grandchild": "great-nibling-sort",
     "spouse": None
 }
 
@@ -81,12 +83,15 @@ def update_relationships (elfling):
     relative_updates = [{"base_id": elfling["id"], "relation_id": elfling["mother_id"], "relationship": "parent"}, {"base_id": elfling["id"], "relation_id": elfling["father_id"], "relationship": "parent"}, {"base_id": elfling["mother_id"], "relation_id": elfling["id"], "relationship": "child"}, {"base_id": elfling["father_id"], "relation_id": elfling["id"], "relationship": "child"}]
     siblings = []
     niblings = []
+    great_niblings = []
     for relative in relatives:
         new_relation = lookup[relative[1]] 
         if new_relation == "sibling-sort":
             siblings.append(relative[0])
         elif new_relation == "nibling-sort":
             niblings.append(relative[0])
+        elif new_relation == "great-nibling-sort":
+            great_niblings.append(relative[0])
         else:
             if new_relation is not None:
                 relative_updates.append({"base_id": elfling["id"], "relation_id": relative[0], "relationship": new_relation})
@@ -111,4 +116,12 @@ def update_relationships (elfling):
         else:
             relative_updates.append({"base_id": elfling["id"], "relation_id": nibling, "relationship": "half_nibling"})
             relative_updates.append({"base_id": nibling, "relation_id": elfling["id"], "relationship": "half_pibling"})
+
+    for great_nibling in great_niblings:
+        cursor.execute("SELECT relation_id FROM Relationships WHERE base_id= :base_id AND relationship= :relationship", {"base_id": great_nibling, "relationship": "great_grandparent"})
+        great_grandparents = cursor.fetchall()
+        if elfling["mother_id"] in great_grandparents and elfling["father_id"] in great_grandparents:
+            relative_updates.append({"base_id": elfling["id"], "relation_id": nibling, "relationship": "great_nibling"})
+            relative_updates.append({"base_id": nibling, "relation_id": elfling["id"], "relationship": "great_pibling"})
+
     return relative_updates

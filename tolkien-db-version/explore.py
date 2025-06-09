@@ -1,8 +1,12 @@
 import sqlite3
 
-conn = sqlite3.connect("tolkien_elves.db")
+conn = sqlite3.connect("tolkien_elves_600_revised.db")
 cursor = conn.cursor()
 
+# cursor.execute('SELECT id, birth_year FROM Elves')
+# elves = cursor.fetchall()
+# for elf in elves:
+#     print(f"Elf {elf[0]} born in {elf[1]}")
 
 cursor.execute('SELECT id FROM Elves WHERE death_year IS NULL')
 living_elves = cursor.fetchall()
@@ -16,8 +20,6 @@ dead_elves = cursor.fetchall()
 cursor.execute('Select generation, COUNT(id) FROM Elves GROUP BY generation')
 generations = cursor.fetchall()
 
-# for elf in elves:
-#     print(elf)
 print(f"Living: {len(living_elves)}")
 print(f"Adults: {len(living_elves) - len(child_elves)}, Children: {len(child_elves)}")
 print(f"Generations: {generations}")
