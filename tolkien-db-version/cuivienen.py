@@ -69,14 +69,14 @@ for i in range(144):
 def simulate_year(year):
     # matchmake unmarried
     cursor.execute('''
-        SELECT * FROM Elves WHERE gender= "F" AND birth_year <= ? AND (death_year IS NULL OR death_year >= ?) AND spouse_id IS NULL AND first_child_year IS NOT NULL AND generation <= 10
+        SELECT * FROM Elves WHERE gender= "F" AND birth_year <= ? AND (death_year IS NULL OR death_year >= ?) AND spouse_id IS NULL AND first_child_year IS NOT NULL
     ''', (year - 50, year))
     unmarried_females = cursor.fetchall()
     matchmake(unmarried_females, year)
     # start new pregnancies
     cursor.execute('''
-        SELECT * FROM Elves WHERE gender= "F" AND current_children < target_children AND birth_year <= :birth_year_for_adult AND spouse_id IS NOT NULL AND death_year IS NULL AND ((first_child_year <= :current_year AND last_child_conceived IS NULL) OR (last_child_conceived >= :year_ready_for_new_child))
-    ''', {"birth_year_for_adult": year - 50, "current_year": year, "year_ready_for_new_child": year - 20})
+        SELECT * FROM Elves WHERE gender= "F" AND current_children < target_children AND birth_year <= :birth_year_for_adult AND spouse_id IS NOT NULL AND death_year IS NULL AND ((first_child_year <= :current_year AND last_child_conceived IS NULL) OR (last_child_conceived <= :year_if_ready_for_new_child))
+    ''', {"birth_year_for_adult": year - 50, "current_year": year, "year_if_ready_for_new_child": year - 20})
     women_ready_for_a_child = cursor.fetchall()
     start_pregnancies(women_ready_for_a_child, year)
     # finish existing pregnancies

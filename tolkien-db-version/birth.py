@@ -36,6 +36,7 @@ lookup = {
     "half_pibling": None,
     "full_nibling": "full_first_cousin",
     "half_nibling": None,
+    "full_great_nibling": None,
     "full_first_cousin": None,
     "child": "sibling-sort",
     "grandchild": "nibling-sort",
@@ -109,7 +110,7 @@ def update_relationships (elfling):
 
     for nibling in niblings:
         cursor.execute("SELECT relation_id FROM Relationships WHERE base_id= :base_id AND relationship= :relationship", {"base_id": nibling, "relationship": "grandparent"})
-        grandparents = cursor.fetchall()
+        grandparents = list(map(lambda data: data[0], cursor.fetchall()))
         if elfling["mother_id"] in grandparents and elfling["father_id"] in grandparents:
             relative_updates.append({"base_id": elfling["id"], "relation_id": nibling, "relationship": "full_nibling"})
             relative_updates.append({"base_id": nibling, "relation_id": elfling["id"], "relationship": "full_pibling"})
@@ -119,7 +120,7 @@ def update_relationships (elfling):
 
     for great_nibling in great_niblings:
         cursor.execute("SELECT relation_id FROM Relationships WHERE base_id= :base_id AND relationship= :relationship", {"base_id": great_nibling, "relationship": "great_grandparent"})
-        great_grandparents = cursor.fetchall()
+        great_grandparents = list(map(lambda data: data[0], cursor.fetchall()))
         if elfling["mother_id"] in great_grandparents and elfling["father_id"] in great_grandparents:
             relative_updates.append({"base_id": elfling["id"], "relation_id": nibling, "relationship": "great_nibling"})
             relative_updates.append({"base_id": nibling, "relation_id": elfling["id"], "relationship": "great_pibling"})
