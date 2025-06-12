@@ -1,8 +1,9 @@
 import random
 from elves import format_elf
 import sqlite3
+from parameters import file_name
 
-conn = sqlite3.connect("tolkien_elves_600_revised.db")
+conn = sqlite3.connect(f"{file_name}.db")
 cursor = conn.cursor()
 
 def matchmake (unmarried_women, year, marriage_chance = 40):

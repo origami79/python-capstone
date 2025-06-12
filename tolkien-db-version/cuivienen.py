@@ -1,13 +1,15 @@
 import sqlite3
 from elves import new_elf
-from years import start_pregnancies, kill_population
+from pregnancy import start_pregnancies
+from deaths import kill_population
 from matchmaking import matchmake
 from birth import resolve_pregnancies
+from parameters import file_name, starting_population, adulthood, pregnancy, time_between_children, infant_immortality, start_year, end_year
 
 import time
 total_start = time.time()
 
-conn = sqlite3.connect("tolkien_elves_600_revised.db")
+conn = sqlite3.connect(f"{file_name}.db")
 cursor = conn.cursor()
 
 cursor.execute('''
@@ -50,12 +52,12 @@ cursor.execute('''
 ''')
 conn.commit()
 
-for i in range(144):
+for i in range(starting_population):
     if i % 2 == 0:
-        elf = new_elf(birth_year = -50, generation= 1, gender= "M", spouse_id= i+2)
+        elf = new_elf(birth_year = 0 - adulthood, generation= 1, gender= "M", spouse_id= i+2)
         relation = {"base_id": i+1, "relation_id": i+2, "relationship": "spouse"}
     else:
-        elf = new_elf(birth_year = -50, generation= 1, gender= "F", spouse_id= i)
+        elf = new_elf(birth_year = 0 - adulthood, generation= 1, gender= "F", spouse_id= i)
         relation = {"base_id": i+1, "relation_id": i, "relationship": "spouse"}
     cursor.execute('''
         INSERT INTO Elves (id, mother_id, father_id, birth_year, death_year, generation, gender, spouse_id, target_children, current_children, first_child_year, last_child_conceived, father_of_baby) 
@@ -69,20 +71,20 @@ for i in range(144):
 def simulate_year(year):
     # matchmake unmarried
     cursor.execute('''
-        SELECT * FROM Elves WHERE gender= "F" AND birth_year <= ? AND (death_year IS NULL OR death_year >= ?) AND spouse_id IS NULL AND first_child_year IS NOT NULL
-    ''', (year - 50, year))
+        SELECT * FROM Elves WHERE gender= "F" AND birth_year <= :birth_year_for_adult AND death_year IS NULL AND spouse_id IS NULL AND first_child_year IS NOT NULL
+    ''', {"birth_year_for_adult": year - adulthood})
     unmarried_females = cursor.fetchall()
     matchmake(unmarried_females, year)
     # start new pregnancies
     cursor.execute('''
         SELECT * FROM Elves WHERE gender= "F" AND current_children < target_children AND birth_year <= :birth_year_for_adult AND spouse_id IS NOT NULL AND death_year IS NULL AND ((first_child_year <= :current_year AND last_child_conceived IS NULL) OR (last_child_conceived <= :year_if_ready_for_new_child))
-    ''', {"birth_year_for_adult": year - 50, "current_year": year, "year_if_ready_for_new_child": year - 20})
+    ''', {"birth_year_for_adult": year - adulthood, "current_year": year, "year_if_ready_for_new_child": year - (pregnancy + time_between_children)})
     women_ready_for_a_child = cursor.fetchall()
     start_pregnancies(women_ready_for_a_child, year)
     # finish existing pregnancies
     cursor.execute('''
-        SELECT * FROM Elves WHERE gender= "F" AND birth_year <= ? AND (death_year IS NULL OR death_year >= ?) AND last_child_conceived = ?
-    ''', (year - 50, year, year - 10))
+        SELECT * FROM Elves WHERE gender= "F" AND birth_year <= birth_year_for_adult AND death_year IS NULL AND last_child_conceived = :year_if_ready_for_birth
+    ''', {"birth_year_for_adult": year - adulthood, "year_if_ready_for_birth": year - pregnancy})
     women_ready_for_birth = cursor.fetchall()
     resolve_pregnancies(women_ready_for_birth, year)
     # kill random population
@@ -90,23 +92,18 @@ def simulate_year(year):
     cursor.execute('''
         SELECT * FROM Elves WHERE (gender= "M" AND birth_year <= :birth_year AND death_year IS NULL) OR 
             (gender= "F" AND birth_year <= :birth_year AND death_year IS NULL AND ((first_child_year >= :year AND last_child_conceived IS NULL) OR (last_child_conceived >= :last_conception)))
-    ''', {"birth_year": year - 50, "year": year, "last_conception": year - 20})
+    ''', {"birth_year": year - adulthood, "year": year, "last_conception": year - (pregnancy + time_between_children)})
     adults = cursor.fetchall()  
     # search for children
     cursor.execute('''
         SELECT * FROM Elves WHERE birth_year BETWEEN ? AND ? AND death_year IS NULL
-    ''', (year - 50, year - 5))
+    ''', (year - adulthood, year - infant_immortality))
     children = cursor.fetchall()
     kill_population(adults, children, year)
 
-for i in range(600):
+for i in range(start_year, end_year):
     simulate_year(i)
 
-# cursor.execute('SELECT * FROM Elves')
-# elves = cursor.fetchall()
-
-# for elf in elves:
-#     print(elf)
 
 conn.close()
 total_end = time.time()

@@ -1,7 +1,8 @@
 from elves import format_elf, new_elf
 import sqlite3
+from parameters import file_name
 
-conn = sqlite3.connect("tolkien_elves_600_revised.db")
+conn = sqlite3.connect(f"{file_name}.db")
 cursor = conn.cursor()
 
 def resolve_pregnancies (pregnant_women, year):
@@ -100,7 +101,9 @@ def update_relationships (elfling):
     
     while len(siblings) > 0:
         current = siblings.pop()
-        if current in siblings:
+        if current == elfling["id"]:
+            continue
+        elif current in siblings:
             relative_updates.append({"base_id": elfling["id"], "relation_id": current, "relationship": "full_sibling"})
             relative_updates.append({"base_id": current, "relation_id": elfling["id"], "relationship": "full_sibling"})
             siblings.remove(current)
@@ -108,7 +111,7 @@ def update_relationships (elfling):
             relative_updates.append({"base_id": elfling["id"], "relation_id": current, "relationship": "half_sibling"})
             relative_updates.append({"base_id": current, "relation_id": elfling["id"], "relationship": "half_sibling"})
 
-    for nibling in niblings:
+    for nibling in set(niblings):
         cursor.execute("SELECT relation_id FROM Relationships WHERE base_id= :base_id AND relationship= :relationship", {"base_id": nibling, "relationship": "grandparent"})
         grandparents = list(map(lambda data: data[0], cursor.fetchall()))
         if elfling["mother_id"] in grandparents and elfling["father_id"] in grandparents:
@@ -118,7 +121,7 @@ def update_relationships (elfling):
             relative_updates.append({"base_id": elfling["id"], "relation_id": nibling, "relationship": "half_nibling"})
             relative_updates.append({"base_id": nibling, "relation_id": elfling["id"], "relationship": "half_pibling"})
 
-    for great_nibling in great_niblings:
+    for great_nibling in set(great_niblings):
         cursor.execute("SELECT relation_id FROM Relationships WHERE base_id= :base_id AND relationship= :relationship", {"base_id": great_nibling, "relationship": "great_grandparent"})
         great_grandparents = list(map(lambda data: data[0], cursor.fetchall()))
         if elfling["mother_id"] in great_grandparents and elfling["father_id"] in great_grandparents:
