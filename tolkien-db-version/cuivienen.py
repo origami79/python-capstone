@@ -90,9 +90,8 @@ def simulate_year(year):
     # kill random population
     # search for adult men and adult women who are not pregnant
     cursor.execute('''
-        SELECT * FROM Elves WHERE (gender= "M" AND birth_year <= :birth_year AND death_year IS NULL) OR 
-            (gender= "F" AND birth_year <= :birth_year AND death_year IS NULL AND ((first_child_year >= :year AND last_child_conceived IS NULL) OR (last_child_conceived >= :last_conception)))
-    ''', {"birth_year": year - adulthood, "year": year, "last_conception": year - (pregnancy + time_between_children)})
+        SELECT * FROM Elves WHERE (gender= "M" AND birth_year <= :year_for_adult AND death_year IS NULL) OR (gender= "F" AND birth_year <= :year_for_adult AND (death_year IS NULL OR death_year <= :year) AND (last_child_conceived IS NULL OR last_child_conceived <= :long_enough_since_conception OR last_child_conceived > :year))
+    ''', {"year_for_adult": year - adulthood, "year": year, "long_enough_since_conception": year - (pregnancy + time_between_children)})
     adults = cursor.fetchall()  
     # search for children
     cursor.execute('''
