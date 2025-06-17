@@ -125,7 +125,7 @@ def update_relationships (elfling):
         cursor.execute("SELECT relation_id FROM Relationships WHERE base_id= :base_id AND relationship= :relationship", {"base_id": great_nibling, "relationship": "great_grandparent"})
         great_grandparents = list(map(lambda data: data[0], cursor.fetchall()))
         if elfling["mother_id"] in great_grandparents and elfling["father_id"] in great_grandparents:
-            relative_updates.append({"base_id": elfling["id"], "relation_id": nibling, "relationship": "great_nibling"})
-            relative_updates.append({"base_id": nibling, "relation_id": elfling["id"], "relationship": "great_pibling"})
+            relative_updates.append({"base_id": elfling["id"], "relation_id": nibling, "relationship": "full_great_nibling"})
+            relative_updates.append({"base_id": nibling, "relation_id": elfling["id"], "relationship": "full_great_pibling"})
 
     return relative_updates

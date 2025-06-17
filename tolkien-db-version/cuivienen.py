@@ -83,7 +83,7 @@ def simulate_year(year):
     start_pregnancies(women_ready_for_a_child, year)
     # finish existing pregnancies
     cursor.execute('''
-        SELECT * FROM Elves WHERE gender= "F" AND birth_year <= birth_year_for_adult AND death_year IS NULL AND last_child_conceived = :year_if_ready_for_birth
+        SELECT * FROM Elves WHERE gender= "F" AND birth_year <= :birth_year_for_adult AND death_year IS NULL AND last_child_conceived = :year_if_ready_for_birth
     ''', {"birth_year_for_adult": year - adulthood, "year_if_ready_for_birth": year - pregnancy})
     women_ready_for_birth = cursor.fetchall()
     resolve_pregnancies(women_ready_for_birth, year)
@@ -95,8 +95,8 @@ def simulate_year(year):
     adults = cursor.fetchall()  
     # search for children
     cursor.execute('''
-        SELECT * FROM Elves WHERE birth_year BETWEEN ? AND ? AND death_year IS NULL
-    ''', (year - adulthood, year - infant_immortality))
+        SELECT * FROM Elves WHERE birth_year BETWEEN :year_for_adult AND :year_out_of_infancy AND death_year IS NULL
+    ''', {"year_for_adult": year - adulthood, "year_out_of_infancy": year - infant_immortality})
     children = cursor.fetchall()
     kill_population(adults, children, year)
 
@@ -109,5 +109,5 @@ total_end = time.time()
 
 
 print("All done <3")
-print("Total Time Taken :", int((total_end-total_start)/60), "minutes and", int((total_end-total_start) % 60), "seconds")
+print("Total Time Taken:", int((total_end-total_start)/60), "minutes and", int((total_end-total_start) % 60), "seconds")
 
