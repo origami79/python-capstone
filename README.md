@@ -17,7 +17,8 @@ In terms of efficiency, the database version is NOT actually faster than the non
 - grandchildren
 - aunts/uncles, full and half
 - nieces/nephews, full and half
-when looking to disqualify potential suitors, while the database version has an expanded list checking for:
+
+When looking to disqualify potential suitors, while the database version has an expanded list checking for:
 - self
 - parents
 - children
